@@ -8,9 +8,13 @@ __author__ = 'litter_zhang'
 import requests
 import json
 import functools
+import time
+from threadpool import ThreadPool, makeRequests
 
 from auth.i_am_same import ImSameClient, LoginSameClient
 from setting import LOGIN_URL, LOGIN_DATA, SENSES_URL
+
+rs_ms = {}
 
 def check_login(func):
 	@functools.wraps(func)
@@ -87,8 +91,48 @@ class SameClient:
 			print('-------------------------')
 		return products_id
 
+	#秒杀请求
+	def same_ms_req(self, url, data):
+		time_ms = 1462086000 
+		time_n = time.time()
+		if time_ms-time_n>1:
+			print('秒杀开始还有：%s分%s秒\n' % (int(time_ms-time_n)//60, int(time_ms-time_n)%60))
+			print('休眠: 0.5秒\n')
+			time.sleep(0.5)
+			return self.same_ms_req(url, data)
+		else:
+			r = self._session.post(url, data=data, auth=self._auth)
+			r.encoding = 'utf-8'
+			# print(r.text)
+			return r.json().get('code', 0)
+
+	#统计秒杀请求结果
+	def same_ms_callback(self, req, code):
+		global rs_ms
+		rs_ms[str(code)] = rs_ms.get(str(code), 0) + 1
+
+	def same_ms(self, product_id):
+		data = {'product_id': product_id, 'address_id': '72858'}
+		url = 'http://payment.ohsame.com/order_create'
+		
+		time_s = time.time()
+		pool = ThreadPool(20)
+		reqs = makeRequests(self.same_ms_req, [((url, data), {}) for i in range(200)], self.same_ms_callback)
+		[pool.putRequest(req) for req in reqs]
+		pool.wait()
+		time_e = time.time()
+
+		print('秒杀商品：%s\n' % str(product_id))
+		print('秒杀结果：%s\n' % rs_ms)
+		print('秒杀耗时：%s\n' % (time_e-time_s))
+
 
 if __name__=='__main__':
 	same = SameClient()
 	same.load_token()
-	same.same_ms_products()
+	# same.login('18810578897', '19940824zw')
+	# same.save_token()
+	products_id = same.same_ms_products()
+	for product_id in products_id:
+		same.same_ms(product_id)
+		break

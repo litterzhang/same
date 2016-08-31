@@ -14,13 +14,13 @@ headers = {
 	'X-same-Client-Version': '426', 'X-Same-Request-ID': 'd6cd644f-5457478c-947d-28216f45350a',
 	'Machine': 'android|301|android5.1.1|MX4 Pro|865863024824281|1536|2560', 'X-same-Device-UUID': '865863024824281', 
 	'User-Agent': 'same/426', 'Connection': 'keep-alive', 'Advertising-UUID': '865863024824281', 
-	'Authorization': 'Token 1461826426-d812eec3fb8c8437-4575261', 
+	'Authorization': 'Token 1471502420-p5klM6M6Q1M8qfck-4575261', 
 	'Extrainfo': 'offical', 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 
 	'Accept-Encoding': 'gzip'
 	}
 
 rs_ms = {}
-time_ms = 1462086000
+time_ms = 1471503600
 
 #向same发送get请求
 def do_same_get(url):
@@ -42,7 +42,7 @@ def same_ms_req(url, data):
 	if time_ms-time_n>1:
 		print('秒杀开始还有：%s分%s秒\n' % (int(time_ms-time_n)//60, int(time_ms-time_n)%60))
 		print('休眠: 0.5秒\n')
-		time.sleep(0.5)
+		time.sleep(1)
 		return same_ms_req(url, data)
 	else:
 		r = do_same_post(url, data)
@@ -88,8 +88,8 @@ def same_ms_products(list_ch=[0, ]):
 
 if __name__=='__main__':
 	#same_ms(2244)
-	#products_id = same_ms_products(list_ch=[2, ])
-	products_id = [2361, ]
+	products_id = same_ms_products(list_ch=[0, 1, 2, 3])
+	#products_id = [2361, ]
 	print(products_id)
 	for product_id in products_id:
 		p = multiprocessing.Process(target=same_ms, args=(product_id, ))
